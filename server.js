@@ -1,41 +1,39 @@
-const express = require("express");
-const cors = require("cors");
+const express = require('express');
+const cors = require('cors');
+const path = require('path');
 
 const app = express();
-const PORT = 3000;
-
 app.use(cors());
 app.use(express.json());
 
-// Temporary notes storage
+// Serve static files (like index.html) from the root folder
+app.use(express.static(__dirname));
+
 let notes = [];
 
-// GET - Display all notes
-app.get("/notes", (req, res) => {
+// REST API Endpoints
+app.get('/notes', (req, res) => {
   res.json(notes);
 });
 
-// POST - Create a new note
-app.post("/notes", (req, res) => {
-  const newNote = {
-    id: Date.now(),
-    text: req.body.text
-  };
-
+app.post('/notes', (req, res) => {
+  const newNote = { id: Date.now(), text: req.body.text };
   notes.push(newNote);
   res.status(201).json(newNote);
 });
 
-// DELETE - Delete a note
-app.delete("/notes/:id", (req, res) => {
-  const id = Number(req.params.id);
-
+app.delete('/notes/:id', (req, res) => {
+  const id = parseInt(req.params.id);
   notes = notes.filter(note => note.id !== id);
-
-  res.json({ message: "Note deleted successfully" });
+  res.status(204).send();
 });
 
-// Start the server
+// Serve index.html when visiting the homepage
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
