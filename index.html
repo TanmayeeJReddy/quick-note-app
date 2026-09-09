@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Quick Note Application</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 500px; margin: 40px auto; padding: 20px; }
+    form { display: flex; gap: 10px; margin-bottom: 20px; }
+    input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+    button { padding: 8px 12px; cursor: pointer; background-color: #007bff; color: white; border: none; border-radius: 4px; }
+    .note { display: flex; justify-content: space-between; align-items: center; background: #f0f0f0; padding: 10px; margin-bottom: 8px; border-radius: 4px; }
+    .delete-btn { background-color: #dc3545; }
+  </style>
+</head>
+<body>
+  <h2>Quick Note App</h2>
+  <form id="noteForm">
+    <input type="text" id="noteInput" placeholder="Enter note..." required>
+    <button type="submit">Add Note</button>
+  </form>
+
+  <div id="notesList"></div>
+
+  <script>
+    // Local backend URL for testing
+    const API_URL = 'http://localhost:3000/notes';
+
+    // Fetch and render notes from Express API
+    async function loadNotes() {
+      try {
+        const res = await fetch(API_URL);
+        const notes = await res.json();
+        const list = document.getElementById('notesList');
+        list.innerHTML = '';
+        notes.forEach(note => {
+          list.innerHTML += `
+            <div class="note">
+              <span>${note.text}</span>
+              <button class="delete-btn" onclick="deleteNote(${note.id})">Delete</button>
+            </div>`;
+        });
+      } catch (err) {
+        console.error("Error fetching notes:", err);
+      }
+    }
+
+    // Add new note via POST request
+    document.getElementById('noteForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const input = document.getElementById('noteInput');
+      await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: input.value })
+      });
+      input.value = '';
+      loadNotes();
+    });
+
+    // Delete note via DELETE request
+    async function deleteNote(id) {
+      await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+      loadNotes();
+    }
+
+    loadNotes();
+  </script>
+</body>
+</html>
